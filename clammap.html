@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Clam up Line 3</title>
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+      #toggle-sat {
+        position: absolute;
+        left: calc(50% - 30px);
+
+        bottom: 30px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50px;
+        z-index: 1000;
+        cursor: pointer;
+        background-color: white;
+        background-image: url("./terrain.png") no-repeat scroll 0 0 transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="toggle-sat">
+      <img
+        style="width: 40px; height: 40px; padding-left: 5px; padding-top: 3px"
+        src="./terrain.png"
+      />
+    </div>
+    <script
+      type="module"
+      src="https://unpkg.com/mapbox-gl-arcgis-tiled-map-service@0.5.0/dist/mapbox-gl-arcgis-tiled-map-service.js"
+    >
+      window.ArcGISRasterTileSource = ArcGISRasterTileSource
+    </script>
+    <script>
+      const toggleSatButton = document.querySelector("#toggle-sat");
+      let lidarOpacity = 0;
+      toggleSatButton.addEventListener("click", () => {
+        newOpacity = lidarOpacity === 1 ? 0 : 1;
+        map.setPaintProperty("lidar", "raster-opacity", newOpacity);
+        lidarOpacity = newOpacity;
+      });
+
+      mapboxgl.accessToken =
+        "pk.eyJ1Ijoic2hhbmU5OGMiLCJhIjoiY2o3dzk2anVtMG5hOTMzbzIyZzZja3ZhMyJ9.JdJS0IEbZZ7S6r3Nr87MJg";
+      var map = new mapboxgl.Map({
+        container: "map", // container id
+        style: "mapbox://styles/shane98c/ckr9txel32hi117mshqqmysxo", // style URL
+        center: [-95, 47.5], // starting position [lng, lat]
+        zoom: 7, // starting zoom
+      });
+
+      map.on("click", function (e) {
+        const coordinates = [e.lngLat.lng, e.lngLat.lat];
+        const bbox = [
+          [e.point.x - 1, e.point.y - 1],
+          [e.point.x + 1, e.point.y + 1],
+        ];
+        // const featuresArr = map.queryRenderedFeatures(bbox, {
+        //   layers: ["treesPoly", "cutline"],
+        // });
+
+        const description =
+          `<div>
+              <b>` +
+          coordinates[1].toFixed(6) +
+          ", " +
+          coordinates[0].toFixed(6) +
+          `</b>
+            </div>`;
+
+        new mapboxgl.Popup()
+          .setLngLat(coordinates)
+          .setHTML(description)
+          .addTo(map);
+      });
+
+      map.on("load", () => {
+        map.addSourceType(
+          "arcgisraster",
+          window.ArcGISTiledMapServiceSource,
+          function (err) {
+            if (err) {
+              /*do something*/
+            }
+          }
+        );
+
+        map.addSource("lidar", {
+          type: "arcgisraster",
+          url: "https://arcgis.dnr.state.mn.us/arcgis/rest/services/elevation/mn_hillshade_web_mercator/MapServer?f=json",
+          tileSize: 256,
+        });
+
+        map.addLayer(
+          {
+            id: "lidar",
+            type: "raster",
+            source: "lidar",
+            minzoom: 0,
+            maxzoom: 22,
+            paint: {
+              "raster-opacity": 0,
+            },
+          },
+          "tunnel-street-minor-low"
+        );
+      });
+    </script>
+  </body>
+</html>
