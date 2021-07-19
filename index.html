@@ -46,12 +46,12 @@
         src="./terrain.png"
       />
     </div>
-    <script
+    <!-- <script
       type="module"
       src="https://unpkg.com/mapbox-gl-arcgis-tiled-map-service@0.5.0/dist/mapbox-gl-arcgis-tiled-map-service.js"
     >
       window.ArcGISRasterTileSource = ArcGISRasterTileSource
-    </script>
+    </script> -->
     <script>
       const toggleSatButton = document.querySelector("#toggle-sat");
       let lidarOpacity = 0;
@@ -96,19 +96,27 @@
       });
 
       map.on("load", () => {
-        map.addSourceType(
-          "arcgisraster",
-          window.ArcGISTiledMapServiceSource,
-          function (err) {
-            if (err) {
-              /*do something*/
-            }
-          }
-        );
+        // map.addSourceType(
+        //   "arcgisraster",
+        //   window.ArcGISTiledMapServiceSource,
+        //   function (err) {
+        //     if (err) {
+        //       /*do something*/
+        //     }
+        //   }
+        // );
 
         map.addSource("lidar", {
-          type: "arcgisraster",
-          url: "https://arcgis.dnr.state.mn.us/arcgis/rest/services/elevation/mn_hillshade_web_mercator/MapServer?f=json",
+          type: "raster",
+          tiles: [
+            `https://imageserver.gisdata.mn.gov/cgi-bin/wms?SERVICE=WMS&bbox={bbox-epsg-3857}&format=image/jpeg&service=WMS&version=1.3.0&request=GetMap&crs=EPSG:3857&width=256&height=256&layers=hillshd`,
+          ],
+          // https://imageserver.gisdata.mn.gov/cgi-bin/wms?SERVICE=WMS&bbox=-10331840.239250705,5948635.289265558,-10175297.205322662,6105178.323193599&format=image/jpeg&service=WMS&version=1.3.0&request=GetMap&crs=EPSG:3857&width=256&height=256&layers=hillshd
+          // tiles: [
+          //   "https://arcgis.dnr.state.mn.us/arcgis/rest/services/elevation/mn_hillshade_web_mercator/MapServer/tile/{z}/{y}/{x}",
+          // ],
+          // url: "https://arcgis.dnr.state.mn.us/arcgis/rest/services/elevation/mn_hillshade_web_mercator/MapServer?f=json",
+
           tileSize: 256,
         });
 
@@ -117,8 +125,8 @@
             id: "lidar",
             type: "raster",
             source: "lidar",
-            minzoom: 0,
-            maxzoom: 22,
+            // minzoom: 0,
+            // maxzoom: 12,
             paint: {
               "raster-opacity": 0,
             },
